@@ -75,7 +75,7 @@ function selectDiverseUrls(searchData, maxResults) {
 function getPromptForQuery(query) {
   const lowerQuery = query.toLowerCase();
   if (lowerQuery.startsWith('rainfall')) {
-    return `Analyze web sources for rainfall data in the specified area. Extract annual average rainfall (in inches or mm), monthly distributions, historical trends, and other relevant precipitation metrics. Create key value pairs in JSON format. Include numerical values where possible. Include key findings and cite sources with URLs. For example something like: {
+    return `Analyze web sources for rainfall data in the specified area. Extract annual average rainfall (in inches or mm), monthly distributions, and other relevant precipitation metrics. Create key value pairs in JSON format. Include numerical values where possible. Include key findings and cite sources with URLs. For example something like: {
   "location": "90210 California",
   "annual_rainfall": "12 inches",
   "monthly_rainfall": {
@@ -83,7 +83,6 @@ function getPromptForQuery(query) {
     "February": "2.3 inches",
     ...
   },
-  "historical_data": "Average from 1950-2020",
   "sources": ["https://weather.gov", "https://climatology.site"]
 } Make it approximate`;
   } else if (lowerQuery.startsWith('crops') || lowerQuery.includes('profitable crops')) {
@@ -113,7 +112,7 @@ function getPromptForQuery(query) {
     "minerals": ["Quartz", "Feldspar"]
   },
   "sources": ["https://usda.gov/soil-survey"]
-} Make it approximate and provide key insights`;
+} Make it approximate and provide key insights i dont want ranges or multiple values for metrices like pH etc`;
   }
 }
 
