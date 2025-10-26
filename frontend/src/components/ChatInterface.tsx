@@ -97,14 +97,14 @@ const ChatInterface = ({ farmData }: ChatInterfaceProps) => {
 
     try {
       // Call the Letta agent backend
-      const response = await fetch('http://localhost:3001/api/chat', {
+      const response = await fetch('http://localhost:3002/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           message: inputMessage,
-          userId: farmData.name || "default_user"
+          userId: farmData?.name || "default_user"
         }),
       });
 
@@ -130,11 +130,13 @@ const ChatInterface = ({ farmData }: ChatInterfaceProps) => {
       }
 
       // Save to localStorage
-      const updatedData = {
-        ...farmData,
-        chatHistory: [...messages, userMessage, aiResponse],
-      };
-      localStorage.setItem("farmSetup", JSON.stringify(updatedData));
+      if (farmData) {
+        const updatedData = {
+          ...farmData,
+          chatHistory: [...messages, userMessage, aiResponse],
+        };
+        localStorage.setItem("farmSetup", JSON.stringify(updatedData));
+      }
 
     } catch (error) {
       console.error('Error communicating with agent:', error);
@@ -150,11 +152,13 @@ const ChatInterface = ({ farmData }: ChatInterfaceProps) => {
       setIsLoading(false);
 
       // Save to localStorage even with error
-      const updatedData = {
-        ...farmData,
-        chatHistory: [...messages, userMessage, aiResponse],
-      };
-      localStorage.setItem("farmSetup", JSON.stringify(updatedData));
+      if (farmData) {
+        const updatedData = {
+          ...farmData,
+          chatHistory: [...messages, userMessage, aiResponse],
+        };
+        localStorage.setItem("farmSetup", JSON.stringify(updatedData));
+      }
     }
   };
 

@@ -4,7 +4,7 @@ import 'dotenv/config';
 import { LettaAgent } from './agent';
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = 3002;
 
 // Middleware
 app.use(cors());
