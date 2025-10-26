@@ -20,7 +20,8 @@ const logger = createLogger('server');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5137';
+// Remove trailing slash from CORS_ORIGIN to prevent mismatch issues across platforms
+const CORS_ORIGIN = (process.env.CORS_ORIGIN || 'http://localhost:5137').replace(/\/$/, '');
 
 // Middleware
 app.use(cors({
