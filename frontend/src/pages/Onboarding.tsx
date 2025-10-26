@@ -84,11 +84,32 @@ const Onboarding = () => {
 
   const handleFinish = async () => {
     try {
-      // Mock API call to /api/setup (frontend-only implementation)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call backend API
+      const response = await fetch('http://localhost:3001/api/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          location: {
+            lat: formData.lat,
+            lon: formData.lon,
+            county: formData.county,
+          },
+          crops: formData.preferredCrops,
+          soilType: formData.soilType,
+          irrigationType: formData.irrigationType,
+          farmSize: formData.farmSize,
+          language: formData.language,
+          interactionMode: formData.interactionMode,
+        }),
+      });
       
-      // Store in localStorage
-      localStorage.setItem("farmSetup", JSON.stringify(formData));
+      if (!response.ok) throw new Error('Setup failed');
+      
+      const data = await response.json();
+      console.log('✅ Setup successful:', data);
       
       // Show success screen
       setShowSuccess(true);
@@ -98,6 +119,7 @@ const Onboarding = () => {
         navigate("/dashboard");
       }, 3000);
     } catch (error) {
+      console.error('❌ Setup error:', error);
       showError("Failed to save farm setup. Please try again.");
     }
   };
