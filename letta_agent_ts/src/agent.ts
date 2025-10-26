@@ -1,7 +1,133 @@
 import { spawn } from 'child_process';
 
 export class LettaAgent {
-  constructor(private brightDataApiKey: string, private serpZone?: string, private unlockerZone?: string) {}
+  private readonly agentId: string = 'agent-1974a387-c19b-4a29-a196-03cc73b149d3';
+  private readonly baseUrl = 'https://api.letta.com/v1';
+
+  constructor(
+    private brightDataApiKey: string,
+    private lettaApiKey: string,
+    private serpZone?: string,
+    private unlockerZone?: string
+  ) {}
+
+  async initializeAgent(userId: string = "default_user"): Promise<void> {
+    try {
+      console.log(`Using existing Letta agent: ${this.agentId} with Claude 3.5 Haiku`);
+      console.log(`API Key present: ${this.lettaApiKey ? 'Yes' : 'No'}`);
+      console.log(`Base URL: ${this.baseUrl}`);
+
+      // Verify the agent exists and is accessible with increased timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const response = await fetch(`${this.baseUrl}/agents/${this.agentId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.lettaApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      console.log(`Verification response status: ${response.status}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Verification failed: ${response.status} - ${errorText}`);
+        throw new Error(`Agent verification failed with HTTP ${response.status}: ${errorText}`);
+      }
+
+      const agentData = await response.json();
+      console.log(`Agent verified successfully: ${agentData.name || 'Farm Assistant'}`);
+
+    } catch (error: any) {
+      const errorMessage = error.name === 'AbortError' ? 'Request timed out' : error.message;
+      console.error('Error verifying Letta agent:', errorMessage);
+      throw new Error(`Failed to verify Letta agent: ${errorMessage}`);
+    }
+  }
+
+  async chat(message: string): Promise<string> {
+    try {
+      console.log(`Sending message to Letta agent: ${message.substring(0, 50)}...`);
+
+      // Add timeout for chat requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
+
+      const response = await fetch(`${this.baseUrl}/agents/${this.agentId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.lettaApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "user",
+              content: message
+            }
+          ],
+          stream: false,
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      console.log(`API Response status: ${response.status}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API Error ${response.status}:`, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('API Response:', JSON.stringify(data, null, 2));
+
+      // Extract assistant message from Letta's response format
+      if (data.messages && data.messages.length > 1) {
+        // Find the assistant message (usually the last one)
+        const assistantMessage = data.messages.find((msg: any) => msg.message_type === 'assistant_message');
+        if (assistantMessage && assistantMessage.content) {
+          return assistantMessage.content;
+        }
+      }
+
+      // Fallback to looking for any response field
+      return data.response || data.content || "I apologize, but I couldn't generate a response at this time.";
+
+    } catch (error: any) {
+      const errorMessage = error.name === 'AbortError' ? 'Request timed out after 45 seconds' : error.message;
+      console.error('Error chatting with Letta agent:', errorMessage);
+      throw new Error(`Failed to get response: ${errorMessage}`);
+    }
+  }
+
+  async cleanup(): Promise<void> {
+    if (this.agentId) {
+      try {
+        const response = await fetch(`${this.baseUrl}/agents/${this.agentId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${this.lettaApiKey}`
+          }
+        });
+
+        if (response.ok) {
+          console.log(`Successfully deleted Letta agent: ${this.agentId}`);
+        } else {
+          console.error(`Failed to delete agent: HTTP ${response.status}`);
+        }
+      } catch (error: any) {
+        console.error('Error cleaning up Letta agent:', error);
+      }
+    }
+  }
 
   private async fetchBrightData(url: string, zone: string, format: string = 'raw'): Promise<string> {
     if (!zone) return 'Mock response'; // If no zone, return mock
