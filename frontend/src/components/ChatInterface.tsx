@@ -66,6 +66,9 @@ interface ChatInterfaceProps {
 }
 
 const ChatInterface = ({ farmData }: ChatInterfaceProps) => {
+  // Extract userId safely at the top
+  const userId = farmData?.name || "default_user";
+  
   const [messages, setMessages] = useState<ChatMessage[]>(farmData?.chatHistory || []);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -104,7 +107,7 @@ const ChatInterface = ({ farmData }: ChatInterfaceProps) => {
         },
         body: JSON.stringify({
           message: inputMessage,
-          userId: farmData?.name || "default_user"
+          userId: userId
         }),
       });
 
@@ -130,13 +133,11 @@ const ChatInterface = ({ farmData }: ChatInterfaceProps) => {
       }
 
       // Save to localStorage
-      if (farmData) {
-        const updatedData = {
-          ...farmData,
-          chatHistory: [...messages, userMessage, aiResponse],
-        };
-        localStorage.setItem("farmSetup", JSON.stringify(updatedData));
-      }
+      const updatedData = {
+        ...farmData,
+        chatHistory: [...messages, userMessage, aiResponse],
+      };
+      localStorage.setItem("farmSetup", JSON.stringify(updatedData));
 
     } catch (error) {
       console.error('Error communicating with agent:', error);
@@ -152,13 +153,11 @@ const ChatInterface = ({ farmData }: ChatInterfaceProps) => {
       setIsLoading(false);
 
       // Save to localStorage even with error
-      if (farmData) {
-        const updatedData = {
-          ...farmData,
-          chatHistory: [...messages, userMessage, aiResponse],
-        };
-        localStorage.setItem("farmSetup", JSON.stringify(updatedData));
-      }
+      const updatedData = {
+        ...farmData,
+        chatHistory: [...messages, userMessage, aiResponse],
+      };
+      localStorage.setItem("farmSetup", JSON.stringify(updatedData));
     }
   };
 
