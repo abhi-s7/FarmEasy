@@ -64,14 +64,14 @@ export const fetchRevenueData = async (): Promise<RevenueMonth[]> => {
     return await api.get('/api/revenue');
   } catch (error) {
     console.error('Failed to fetch revenue data:', error);
-    // Fallback to default
+    // Fallback to default - set to 0 for now
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const crops = ["Wheat", "Corn", "Soybeans"];
     return months.flatMap((month) =>
       crops.map((crop) => ({
         month,
         crop,
-        revenue: Math.floor(Math.random() * 5000) + 3000,
+        revenue: 0, // Set to 0 as requested
       }))
     );
   }

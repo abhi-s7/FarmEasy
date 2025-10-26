@@ -7,10 +7,19 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user has completed onboarding
-    const farmSetup = localStorage.getItem("farmSetup");
-    if (farmSetup) {
-      navigate("/dashboard");
+    // Check if user has completed onboarding (check for cached farm data)
+    const farmData = localStorage.getItem("farmData");
+    if (farmData) {
+      try {
+        const parsed = JSON.parse(farmData);
+        // If cache exists and has data, user has completed onboarding
+        if (parsed.rawData) {
+          navigate("/dashboard");
+          return;
+        }
+      } catch (e) {
+        console.error('Error parsing cache:', e);
+      }
     }
   }, [navigate]);
 

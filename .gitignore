@@ -52,3 +52,12 @@ temp/
 tmp/
 
 logs/
+
+# Data files
+backend/data/
+
+# Documentation - ignore all .md files except README.md
+*.md
+!README.md
+!readme.md
+!Readme.md

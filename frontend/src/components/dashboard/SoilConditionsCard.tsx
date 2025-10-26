@@ -87,15 +87,33 @@ const SoilConditionsCard = () => {
                 {/* Composition Chart */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold mb-4 text-center">Soil Composition</h4>
-                  <ResponsiveContainer width="100%" height={200}>
+                  <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
                       <Pie
                         data={compositionData}
                         cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, value }) => `${name}: ${value}%`}
-                        outerRadius={80}
+                        cy="45%"
+                        labelLine={true}
+                        label={({ cx, cy, midAngle, innerRadius, outerRadius, value, name }) => {
+                          const RADIAN = Math.PI / 180;
+                          const radius = outerRadius + 25;
+                          const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                          const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                          
+                          return (
+                            <text 
+                              x={x} 
+                              y={y} 
+                              fill="#374151" 
+                              textAnchor={x > cx ? 'start' : 'end'} 
+                              dominantBaseline="central"
+                              className="text-sm font-medium"
+                            >
+                              {`${name}: ${value}%`}
+                            </text>
+                          );
+                        }}
+                        outerRadius={70}
                         fill="#8884d8"
                         dataKey="value"
                       >

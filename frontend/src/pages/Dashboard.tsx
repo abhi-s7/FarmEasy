@@ -17,12 +17,18 @@ import InsightsList from "@/components/dashboard/InsightsList";
 import AssistantFab from "@/components/dashboard/AssistantFab";
 import AssistantDrawer from "@/components/dashboard/AssistantDrawer";
 import { OnboardingData } from "./Onboarding";
+import { getDashboardData } from "@/lib/dashboardData";
+import LoadingProgress from "@/components/LoadingProgress";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [farmData, setFarmData] = useState<OnboardingData | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState("Loading...");
+  const [progress, setProgress] = useState(0);
+  const [dashboardData, setDashboardData] = useState<any>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["profile"],
@@ -35,16 +41,63 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    const storedData = localStorage.getItem("farmSetup");
-    if (storedData) {
-      const data = JSON.parse(storedData);
-      setFarmData(data);
-      if (data.language) {
-        i18n.changeLanguage(data.language);
+    async function loadData() {
+      try {
+        // First check if cache exists
+        const cached = localStorage.getItem("farmData");
+        
+        if (!cached) {
+          // No cache means user hasn't completed onboarding
+          console.log('No cached data, redirecting to onboarding');
+          navigate("/onboarding");
+          return;
+        }
+        
+        // Fetch dashboard data with progress (will use cache if valid)
+        const rawData = await getDashboardData((msg, prog) => {
+          setLoadingMessage(msg);
+          setProgress(prog);
+        });
+        
+        setDashboardData(rawData);
+        
+        // Check language
+        if (rawData?.language) {
+          i18n.changeLanguage(rawData.language);
+        }
+        
+        // Small delay to show 100%
+        setTimeout(() => {
+          setIsLoadingData(false);
+        }, 300);
+        
+      } catch (error: any) {
+        console.error('Failed to load dashboard:', error);
+        
+        // Only redirect if it's a profile error AND no cache exists
+        const cached = localStorage.getItem("farmData");
+        if (!cached && error.message?.includes('Profile not configured')) {
+          navigate("/onboarding");
+        } else {
+          // If cache exists but fetch failed, still show dashboard with cached data
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              setDashboardData(parsed.rawData);
+              setIsLoadingData(false);
+            } catch (e) {
+              setLoadingMessage("Error loading data");
+              setTimeout(() => setIsLoadingData(false), 1000);
+            }
+          } else {
+            setLoadingMessage("Error loading data");
+            setTimeout(() => setIsLoadingData(false), 1000);
+          }
+        }
       }
-    } else {
-      navigate("/onboarding");
     }
+    
+    loadData();
   }, [navigate, i18n]);
 
   const handleLanguageChange = (lang: string) => {
@@ -68,8 +121,8 @@ const Dashboard = () => {
     }
   };
 
-  if (!farmData) {
-    return null;
+  if (isLoadingData) {
+    return <LoadingProgress message={loadingMessage} progress={progress} />;
   }
 
   return (

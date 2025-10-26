@@ -11,6 +11,8 @@ import SuccessScreen from "@/components/onboarding/SuccessScreen";
 import ProgressIndicator from "@/components/onboarding/ProgressIndicator";
 import { Sprout } from "lucide-react";
 import { showError } from "@/utils/toast";
+import LoadingProgress from "@/components/LoadingProgress";
+import { clearDashboardCache } from "@/lib/dashboardData";
 
 export interface ChatMessage {
   id: string;
@@ -48,6 +50,9 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
+  const [progress, setProgress] = useState(0);
   const [formData, setFormData] = useState<OnboardingData>({
     name: "",
     email: "",
@@ -84,7 +89,11 @@ const Onboarding = () => {
 
   const handleFinish = async () => {
     try {
-      // Call backend API
+      setIsSubmitting(true);
+      setLoadingMessage("Saving your farm details...");
+      setProgress(20);
+      
+      // Call backend API to save profile
       const response = await fetch('http://localhost:3001/api/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,19 +120,51 @@ const Onboarding = () => {
       const data = await response.json();
       console.log('✅ Setup successful:', data);
       
-      // Show success screen
-      setShowSuccess(true);
+      setLoadingMessage("Fetching real-time data, please wait...");
+      setProgress(40);
       
-      // Auto-redirect after 3 seconds
+      // Clear old cache before fetching new data
+      clearDashboardCache();
+      
+      // NOW FETCH DASHBOARD DATA which will save to cache
+      const dashboardResponse = await fetch('http://localhost:3001/api/dashboard-data');
+      
+      if (!dashboardResponse.ok) throw new Error('Failed to fetch dashboard data');
+      
+      const dashboardData = await dashboardResponse.json();
+      console.log('✅ Dashboard data fetched:', dashboardData);
+      
+      // Save to localStorage cache
+      const cachedData = {
+        timestamp: Date.now(),
+        rawData: dashboardData,
+      };
+      localStorage.setItem('farmData', JSON.stringify(cachedData));
+      console.log('💾 Data cached to localStorage');
+      
+      setLoadingMessage("Preparing your dashboard...");
+      setProgress(90);
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setProgress(100);
+      
+      // Navigate to dashboard (now cache is populated!)
       setTimeout(() => {
         navigate("/dashboard");
-      }, 3000);
+      }, 300);
+      
     } catch (error) {
       console.error('❌ Setup error:', error);
+      setIsSubmitting(false);
       showError("Failed to save farm setup. Please try again.");
     }
   };
 
+  if (isSubmitting) {
+    return <LoadingProgress message={loadingMessage} progress={progress} />;
+  }
+  
   if (showSuccess) {
     return <SuccessScreen userName={formData.name} />;
   }

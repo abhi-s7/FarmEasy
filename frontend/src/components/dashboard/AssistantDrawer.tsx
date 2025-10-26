@@ -9,7 +9,7 @@ import { MessageSquare, Mic } from "lucide-react";
 interface AssistantDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  farmData: OnboardingData;
+  farmData: OnboardingData | null;
 }
 
 const AssistantDrawer = ({ open, onOpenChange, farmData }: AssistantDrawerProps) => {

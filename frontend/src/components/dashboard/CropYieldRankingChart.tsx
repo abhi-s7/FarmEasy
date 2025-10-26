@@ -56,10 +56,19 @@ const CropYieldRankingChart = () => {
     ? suitabilityData
     : suitabilityData.slice(0, 3);
   
-  // Get user's crops data
-  const userCropsData = profile.crops
-    .map(cropName => suitabilityData.find(c => c.crop === cropName))
-    .filter(Boolean); // Remove any undefined entries
+  // Get user's crops data - if crop not in suitability data, add it with default scores
+  const userCropsData = profile.crops.map(cropName => {
+    const existingCrop = suitabilityData.find(c => c.crop === cropName);
+    if (existingCrop) {
+      return existingCrop;
+    }
+    // If crop not found, create a default entry
+    return {
+      crop: cropName,
+      score: 70, // Default score
+      subScores: { soil: 70, climate: 70, water: 70, market: 70 }
+    };
+  });
 
   // Color mapping
   const getTopCropColor = (index: number) => {

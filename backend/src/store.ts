@@ -1,13 +1,56 @@
 import { Profile, KpiData, Suitability, Insight, RevenueMonth, RainfallMonth } from "./types";
 import { mockProfile, mockKpiData, mockSuitability, mockInsights, mockRevenueData, mockRainfallData } from "./mockData";
 import { createLogger } from "./logger";
+import fs from 'fs/promises';
+import path from 'path';
 
 // Create logger for store operations
 const logger = createLogger('store');
 
-// In-memory store
+// Profile storage file path - use absolute path from project root
+const PROFILE_FILE = path.join(process.cwd(), 'data', 'profile.json');
+
+// Load profile from file or use empty default
+async function loadProfile(): Promise<Profile> {
+  try {
+    const data = await fs.readFile(PROFILE_FILE, 'utf-8');
+    const profile = JSON.parse(data);
+    logger.info('Profile loaded from file', 'loadProfile', { email: profile.email });
+    return profile;
+  } catch (error) {
+    // If file doesn't exist or can't be read, return empty profile that forces onboarding
+    logger.info('No saved profile found, using empty default', 'loadProfile');
+    return {
+      name: "",
+      email: "",
+      phone: "",
+      location: { lat: 0, lon: 0, place: "" },
+      language: "en",
+      soil: "",
+      irrigation: "",
+      farmSize: { value: 0, unit: "ac" },
+      crops: [],
+      selectedCrop: "",
+    };
+  }
+}
+
+// Save profile to file
+async function saveProfile(profile: Profile): Promise<void> {
+  try {
+    await fs.mkdir(path.dirname(PROFILE_FILE), { recursive: true });
+    await fs.writeFile(PROFILE_FILE, JSON.stringify(profile, null, 2));
+    logger.info('Profile saved to file', 'saveProfile', { email: profile.email });
+  } catch (error) {
+    logger.error('Failed to save profile to file', 'saveProfile', { 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+  }
+}
+
+// In-memory store (profile will be loaded async)
 const store = {
-  profile: mockProfile,
+  profile: mockProfile, // Temporary, will be replaced by loaded profile
   kpiData: mockKpiData,
   suitability: mockSuitability,
   insights: mockInsights,
@@ -15,7 +58,31 @@ const store = {
   rainfallData: mockRainfallData,
 };
 
-logger.info('Store initialized with mock data', 'init');
+// Initialize store - must be called before server starts
+let isInitialized = false;
+
+export async function initializeStore(): Promise<void> {
+  if (isInitialized) {
+    logger.info('Store already initialized', 'initializeStore');
+    return;
+  }
+  
+  try {
+    const profile = await loadProfile();
+    store.profile = profile;
+    isInitialized = true;
+    logger.info('Store initialized successfully', 'initializeStore', { 
+      hasProfile: !!profile.email,
+      location: profile.location.place 
+    });
+  } catch (error) {
+    logger.error('Failed to load profile on startup', 'initializeStore', { 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+    // Continue with empty profile
+    isInitialized = true;
+  }
+}
 
 // Profile operations
 export const getProfile = (): Profile => {
@@ -27,6 +94,12 @@ export const updateProfile = (updates: Partial<Profile>): Profile => {
   logger.info('Updating profile', 'updateProfile', { updates: Object.keys(updates) });
   store.profile = { ...store.profile, ...updates };
   logger.info('Profile updated successfully', 'updateProfile', { email: store.profile.email });
+  
+  // Save to file (fire and forget - don't block)
+  saveProfile(store.profile).catch(err => {
+    logger.error('Failed to save profile after update', 'updateProfile', { error: err });
+  });
+  
   return store.profile;
 };
 
@@ -34,6 +107,12 @@ export const setProfile = (profile: Profile): Profile => {
   logger.info('Setting profile', 'setProfile', { email: profile.email });
   store.profile = profile;
   logger.info('Profile set successfully', 'setProfile');
+  
+  // Save to file (fire and forget - don't block)
+  saveProfile(profile).catch(err => {
+    logger.error('Failed to save profile after set', 'setProfile', { error: err });
+  });
+  
   return store.profile;
 };
 

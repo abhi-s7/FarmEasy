@@ -62,14 +62,14 @@ declare const SpeechRecognition: {
 };
 
 interface ChatInterfaceProps {
-  farmData: OnboardingData;
+  farmData: OnboardingData | null;
 }
 
 const ChatInterface = ({ farmData }: ChatInterfaceProps) => {
-  const [messages, setMessages] = useState<ChatMessage[]>(farmData.chatHistory || []);
+  const [messages, setMessages] = useState<ChatMessage[]>(farmData?.chatHistory || []);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isVoiceMode, setIsVoiceMode] = useState(farmData.interactionMode === "voice");
+  const [isVoiceMode, setIsVoiceMode] = useState(farmData?.interactionMode === "voice");
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
