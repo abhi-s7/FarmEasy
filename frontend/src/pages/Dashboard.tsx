@@ -3,16 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Cloud, Sun, CloudRain, Droplets, Sprout, DollarSign, Settings, MapPin } from "lucide-react";
+import { Cloud, Sun, CloudRain, Droplets, Sprout, DollarSign, Settings, MapPin, Waves } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProfile, fetchKpiData } from "@/lib/mockData";
 import { useTranslation } from "react-i18next";
 import KpiCard from "@/components/dashboard/KpiCard";
 import PestRiskCard from "@/components/dashboard/PestRiskCard";
-import WaterEfficiencyCard from "@/components/dashboard/WaterEfficiencyCard";
 import SoilConditionsCard from "@/components/dashboard/SoilConditionsCard";
 import HarvestReadinessCard from "@/components/dashboard/HarvestReadinessCard";
-import RevenueChart from "@/components/dashboard/RevenueChart";
 import CropYieldRankingChart from "@/components/dashboard/CropYieldRankingChart";
 import RainYieldChart from "@/components/dashboard/RainYieldChart";
 import InsightsList from "@/components/dashboard/InsightsList";
@@ -133,19 +131,19 @@ const Dashboard = () => {
             isLoading={kpiLoading}
           />
           <KpiCard
-            title={t("dashboard.soilIrrigation")}
-            value={kpiData ? `${kpiData.soilHealth}%` : "--"}
-            subtitle={`Irrigation: ${kpiData?.irrigationEfficiency || "--"}%`}
+            title="Soil pH Level"
+            value={kpiData ? `${kpiData.soilpH}` : "--"}
+            subtitle="Optimal range: 6.0-7.0"
             icon={Droplets}
             iconColor="bg-emerald-500"
             isLoading={kpiLoading}
           />
           <KpiCard
-            title={t("dashboard.cropSuitability")}
-            value={kpiData ? `${kpiData.cropSuitability}%` : "--"}
-            subtitle="Excellent conditions"
-            icon={Sprout}
-            iconColor="bg-green-500"
+            title="Soil Drainage"
+            value={kpiData?.drainage || "--"}
+            subtitle="Water retention capacity"
+            icon={Waves}
+            iconColor="bg-cyan-500"
             isLoading={kpiLoading}
           />
           <KpiCard
@@ -158,23 +156,23 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Farm Health Insights - 2×2 Grid */}
+        {/* Farm Health Insights - Grid */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Farm Health Insights</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
             <PestRiskCard />
-            <WaterEfficiencyCard />
-            <SoilConditionsCard />
             <HarvestReadinessCard />
+            <SoilConditionsCard />
           </div>
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RevenueChart />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-fr">
           <CropYieldRankingChart />
           <RainYieldChart />
-          <InsightsList />
+          <div className="lg:col-span-2">
+            <InsightsList />
+          </div>
         </div>
       </div>
 

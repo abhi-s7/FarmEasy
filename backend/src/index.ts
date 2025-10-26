@@ -6,6 +6,7 @@ import { Profile } from './types';
 import { checkAuth } from './middleware/auth';
 import { errorHandler } from './middleware/errorHandler';
 import { createLogger } from './logger';
+import { lettaBrightData } from './mockData';
 
 // Load environment variables
 dotenv.config();
@@ -186,14 +187,32 @@ app.get('/api/revenue', (req: Request, res: Response) => {
 
 // GET /api/rainfall - Returns rainfall data
 app.get('/api/rainfall', (req: Request, res: Response) => {
-  logger.info('Get rainfall data endpoint called');
+  logger.info('Get rainfall data endpoint called', 'GET /api/rainfall');
   try {
-    const rainfallData = getRainfallData();
-    logger.info('Rainfall data retrieved successfully', { count: rainfallData.length });
-    res.json(rainfallData);
+    const rainfallMonths = getRainfallData();
+    const keyFindings = lettaBrightData.rainfallData.key_findings;
+    const response = {
+      months: rainfallMonths,
+      keyFindings: keyFindings
+    };
+    logger.info('Rainfall data retrieved successfully', 'GET /api/rainfall');
+    res.json(response);
   } catch (error) {
     logger.error('Failed to retrieve rainfall data', { error: error instanceof Error ? error.message : String(error) });
     res.status(500).json({ error: 'Failed to retrieve rainfall data' });
+  }
+});
+
+// GET /api/soil - Returns soil data
+app.get('/api/soil', (req: Request, res: Response) => {
+  logger.info('Get soil data endpoint called', 'GET /api/soil');
+  try {
+    const soilData = lettaBrightData.soilData;
+    logger.info('Soil data retrieved successfully', 'GET /api/soil');
+    res.json(soilData);
+  } catch (error) {
+    logger.error('Failed to retrieve soil data', 'GET /api/soil', { error: error instanceof Error ? error.message : String(error) });
+    res.status(500).json({ error: 'Failed to retrieve soil data' });
   }
 });
 

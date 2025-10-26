@@ -1,4 +1,4 @@
-import { Profile, Suitability, RevenueMonth, RainfallMonth, Insight, KpiData } from "@/types/dashboard";
+import { Profile, Suitability, RevenueMonth, RainfallMonth, RainfallData, SoilData, Insight, KpiData } from "@/types/dashboard";
 import { api } from "./api";
 
 export const fetchProfile = async (): Promise<Profile> => {
@@ -36,9 +36,8 @@ export const fetchKpiData = async (): Promise<KpiData> => {
         windSpeed: 8,
         icon: "partly-cloudy",
       },
-      soilHealth: 85,
-      irrigationEfficiency: 78,
-      cropSuitability: 92,
+      soilpH: 6.5,
+      drainage: "Well drained",
       estimatedRevenue: 12500,
     };
   }
@@ -78,18 +77,50 @@ export const fetchRevenueData = async (): Promise<RevenueMonth[]> => {
   }
 };
 
-export const fetchRainfallData = async (): Promise<RainfallMonth[]> => {
+export const fetchRainfallData = async (): Promise<RainfallData> => {
   try {
     return await api.get('/api/rainfall');
   } catch (error) {
     console.error('Failed to fetch rainfall data:', error);
     // Fallback to default
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return months.map((month) => ({
-      month,
-      mm: Math.floor(Math.random() * 150) + 20,
-      yieldIndex: Math.floor(Math.random() * 40) + 60,
-    }));
+    return {
+      months: months.map((month) => ({
+        month,
+        mm: Math.floor(Math.random() * 150) + 20,
+        yieldIndex: Math.floor(Math.random() * 40) + 60,
+      })),
+      keyFindings: [
+        "Rainfall data unavailable. Using estimated values."
+      ]
+    };
+  }
+};
+
+export const fetchSoilData = async (): Promise<SoilData> => {
+  try {
+    return await api.get('/api/soil');
+  } catch (error) {
+    console.error('Failed to fetch soil data:', error);
+    // Fallback to default
+    return {
+      pincode: "00000",
+      properties: {
+        soilSeries: "Unknown",
+        drainage: "Moderate",
+        texture: "Loam",
+        pH: 6.5,
+        organicMatter: "2%",
+        permeability: "Moderate",
+        parentMaterial: "Unknown",
+        depthCoverageCm: "0-60 cm",
+        sandContent: "40%",
+        siltContent: "40%",
+        clayContent: "20%"
+      },
+      keyInsights: "Soil data unavailable.",
+      sources: []
+    };
   }
 };
 

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { Bug, AlertTriangle } from "lucide-react";
+import { Bug, AlertTriangle, Info } from "lucide-react";
 
 const PestRiskCard = () => {
   // Simple mock data - no external dependencies
@@ -35,11 +35,12 @@ const PestRiskCard = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
+      className="h-full"
     >
-      <Card className="p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+      <Card className="h-full p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Bug className="w-5 h-5 text-gray-700" />
+            <Bug className="w-5 h-5 text-red-600" />
             <h3 className="text-lg font-semibold">Pest & Disease Risk</h3>
           </div>
           <Badge className={`${colors.bg} ${colors.text}`}>
@@ -47,78 +48,91 @@ const PestRiskCard = () => {
           </Badge>
         </div>
 
-        <div className="flex items-center gap-6 mb-4">
-          <div className="relative w-32 h-32">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  startAngle={180}
-                  endAngle={0}
-                  innerRadius={40}
-                  outerRadius={60}
-                  dataKey="value"
-                  aria-label={`Pest risk gauge showing ${data.probability}% probability`}
-                >
-                  <Cell fill={colors.chart} />
-                  <Cell fill="#e5e7eb" />
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{data.probability}%</p>
-                <p className="text-xs text-gray-500">Risk</p>
+        {/* Main Content - Gauge and Threats */}
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="flex items-center gap-6 mb-6">
+            {/* Risk Gauge */}
+            <div className="relative w-28 h-28 flex-shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    startAngle={180}
+                    endAngle={0}
+                    innerRadius={35}
+                    outerRadius={55}
+                    dataKey="value"
+                    aria-label={`Pest risk gauge showing ${data.probability}% probability`}
+                  >
+                    <Cell fill={colors.chart} />
+                    <Cell fill="#e5e7eb" />
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex items-center justify-center pt-4">
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{data.probability}%</p>
+                  <p className="text-[10px] text-gray-500 uppercase">Risk</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Threats */}
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wide">Top Threats</p>
+              <div className="space-y-2">
+                {data.topRisks.map((risk, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm bg-amber-50 p-2 rounded-lg">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <span className="text-gray-700">{risk}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-700 mb-2">Top Threats:</p>
-            <div className="space-y-1">
-              {data.topRisks.map((risk, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-sm">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
-                  <span>{risk}</span>
-                </div>
-              ))}
+          {/* Insight */}
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-4">
+            <div className="flex gap-2">
+              <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-gray-700 leading-relaxed">{data.insight}</p>
             </div>
           </div>
         </div>
 
-        <p className="text-sm text-gray-600 mb-4">{data.insight}</p>
-
+        {/* Action Button */}
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" size="sm" className="w-full gap-2">
+              <Bug className="w-4 h-4" />
               View Recommendations
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Pest Management Recommendations</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
-              <div>
-                <h4 className="font-semibold mb-2">Preventive Measures:</h4>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <h4 className="font-semibold mb-2 text-green-900">Preventive Measures:</h4>
                 <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
                   <li>Apply neem-based organic pesticides weekly</li>
                   <li>Maintain proper field sanitation and remove crop residue</li>
                   <li>Use pheromone traps for early detection</li>
                 </ul>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Monitoring Schedule:</h4>
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold mb-2 text-blue-900">Monitoring Schedule:</h4>
                 <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
                   <li>Inspect crops every 3-4 days during high-risk periods</li>
                   <li>Check undersides of leaves for eggs and larvae</li>
                   <li>Document pest sightings in farm log</li>
                 </ul>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Treatment Options:</h4>
+              <div className="p-4 bg-amber-50 rounded-lg">
+                <h4 className="font-semibold mb-2 text-amber-900">Treatment Options:</h4>
                 <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
                   <li>Biological control: Release beneficial insects</li>
                   <li>Chemical control: Use approved pesticides as last resort</li>

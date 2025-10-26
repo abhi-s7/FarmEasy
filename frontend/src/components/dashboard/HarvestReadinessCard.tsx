@@ -1,9 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { Wheat, Calendar, Package } from "lucide-react";
+import { Wheat, Calendar, Package, CheckCircle } from "lucide-react";
 
 const HarvestReadinessCard = () => {
   // Simple mock data - no external dependencies
@@ -25,81 +26,114 @@ const HarvestReadinessCard = () => {
     return "#3b82f6";
   };
 
+  const getStatus = (pct: number) => {
+    if (pct >= 90) return { text: "Ready", color: "bg-green-100 text-green-700" };
+    if (pct >= 75) return { text: "Soon", color: "bg-amber-100 text-amber-700" };
+    return { text: "Growing", color: "bg-blue-100 text-blue-700" };
+  };
+
+  const status = getStatus(data.maturityPct);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.3 }}
+      className="h-full"
     >
-      <Card className="p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
-        <div className="flex items-center gap-2 mb-4">
-          <Wheat className="w-5 h-5 text-green-600" />
-          <h3 className="text-lg font-semibold">Harvest Readiness</h3>
+      <Card className="h-full p-6 rounded-2xl shadow-md hover:shadow-lg transition-shadow flex flex-col">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Wheat className="w-5 h-5 text-green-600" />
+            <h3 className="text-lg font-semibold">Harvest Readiness</h3>
+          </div>
+          <Badge className={status.color}>
+            {status.text}
+          </Badge>
         </div>
 
-        <div className="flex items-center gap-6 mb-4">
-          <div className="relative w-32 h-32">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={60}
-                  dataKey="value"
-                  startAngle={90}
-                  endAngle={-270}
-                  aria-label={`Crop maturity at ${data.maturityPct}%`}
-                >
-                  <Cell fill={getColor(data.maturityPct)} />
-                  <Cell fill="#e5e7eb" />
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{data.maturityPct}%</p>
-                <p className="text-xs text-gray-500">Mature</p>
+        {/* Main Content - Gauge and Details */}
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="flex items-center gap-6 mb-6">
+            {/* Maturity Gauge */}
+            <div className="relative w-28 h-28 flex-shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={35}
+                    outerRadius={55}
+                    dataKey="value"
+                    startAngle={90}
+                    endAngle={-270}
+                    aria-label={`Crop maturity at ${data.maturityPct}%`}
+                  >
+                    <Cell fill={getColor(data.maturityPct)} />
+                    <Cell fill="#e5e7eb" />
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{data.maturityPct}%</p>
+                  <p className="text-[10px] text-gray-500 uppercase">Mature</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Details */}
+            <div className="flex-1 space-y-3">
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <div className="flex items-start gap-2">
+                  <Calendar className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[10px] text-blue-700 uppercase font-semibold">Harvest Window</p>
+                    <p className="text-sm font-medium text-gray-900">{data.harvestWindow}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-green-50 p-3 rounded-lg border border-green-100">
+                <div className="flex items-start gap-2">
+                  <Package className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[10px] text-green-700 uppercase font-semibold">Storage Tip</p>
+                    <p className="text-sm font-medium text-gray-900">{data.storageTip}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 space-y-3">
-            <div className="flex items-start gap-2">
-              <Calendar className="w-4 h-4 text-gray-500 mt-0.5" />
-              <div>
-                <p className="text-xs text-gray-500">Harvest Window</p>
-                <p className="text-sm font-medium">{data.harvestWindow}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <Package className="w-4 h-4 text-gray-500 mt-0.5" />
-              <div>
-                <p className="text-xs text-gray-500">Storage Tip</p>
-                <p className="text-sm font-medium">{data.storageTip}</p>
-              </div>
+          {/* Recommendation */}
+          <div className="bg-amber-50 p-3 rounded-lg border border-amber-100 mb-4">
+            <div className="flex gap-2">
+              <CheckCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-gray-700 leading-relaxed">{data.recommendation}</p>
             </div>
           </div>
         </div>
 
+        {/* Action Button */}
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" size="sm" className="w-full gap-2">
+              <Wheat className="w-4 h-4" />
               View Full Advisory
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Harvest & Storage Advisory</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
-              <div>
-                <h4 className="font-semibold mb-2">Current Status:</h4>
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold mb-2 text-blue-900">Current Status:</h4>
                 <p className="text-sm text-gray-700">{data.recommendation}</p>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Pre-Harvest Checklist:</h4>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <h4 className="font-semibold mb-2 text-green-900">Pre-Harvest Checklist:</h4>
                 <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
                   <li>Check moisture content daily (target: 13-15%)</li>
                   <li>Inspect equipment and ensure proper calibration</li>
@@ -107,8 +141,8 @@ const HarvestReadinessCard = () => {
                   <li>Monitor weather forecasts for optimal harvest window</li>
                 </ul>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Post-Harvest Storage:</h4>
+              <div className="p-4 bg-amber-50 rounded-lg">
+                <h4 className="font-semibold mb-2 text-amber-900">Post-Harvest Storage:</h4>
                 <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
                   <li>Dry grain to recommended moisture levels immediately</li>
                   <li>Store in well-ventilated, pest-free facilities</li>
@@ -116,8 +150,8 @@ const HarvestReadinessCard = () => {
                   <li>Implement proper pest management protocols</li>
                 </ul>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Quality Preservation:</h4>
+              <div className="p-4 bg-purple-50 rounded-lg">
+                <h4 className="font-semibold mb-2 text-purple-900">Quality Preservation:</h4>
                 <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
                   <li>Avoid mixing different crop varieties or harvest dates</li>
                   <li>Use aeration systems to maintain uniform temperature</li>
